@@ -46,11 +46,16 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
         _results.clear();
         for (int i = 0; i < numberOfPeople - 1; i++) {
           _results.add(SplitAmount(
-              'R\$ ${roundedSplitAmount.toStringAsFixed(2)}', false));
+            'R\$ ${roundedSplitAmount.toStringAsFixed(2)}',
+            false,
+            false,
+          ));
         }
         _results.add(SplitAmount(
-            'R\$ ${(roundedSplitAmount + adjustment).toStringAsFixed(2)}',
-            false));
+          'R\$ ${(roundedSplitAmount + adjustment).toStringAsFixed(2)}',
+          false,
+          true,
+        ));
       });
     }
   }
@@ -77,10 +82,10 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
               TextFormField(
                 controller: _totalAmountController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Valor da conta'),
+                decoration: const InputDecoration(labelText: 'Valor total da conta'),
                 validator: (value) {
                   if (value!.isEmpty) {
-                    return 'Por favor insira o valor total da conta';
+                    return 'Por favor, digite o valor total da conta.';
                   }
                   return null;
                 },
@@ -89,10 +94,10 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
                 controller: _numberOfPeopleController,
                 keyboardType: TextInputType.number,
                 decoration:
-                    const InputDecoration(labelText: 'Número de pessoas'),
+                    const InputDecoration(labelText: 'Número de participantes'),
                 validator: (value) {
                   if (value!.isEmpty) {
-                    return 'Por favor insira o número de pessoas';
+                    return 'Por favor, digite o número de participantes';
                   }
                   return null;
                 },
@@ -120,7 +125,9 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
                       child: Card(
                         color: _results[index].isPaid
                             ? const Color.fromARGB(255, 1, 255, 1)
-                            : Colors.red.shade200,
+                            : (_results[index].isLast
+                                ? Colors.orange[200]
+                                : Colors.red[200]),
                         child: Center(
                           child: Text(
                             _results[index].amount,
@@ -143,6 +150,7 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
 class SplitAmount {
   final String amount;
   bool isPaid;
+  final bool isLast;
 
-  SplitAmount(this.amount, this.isPaid);
+  SplitAmount(this.amount, this.isPaid, this.isLast);
 }
