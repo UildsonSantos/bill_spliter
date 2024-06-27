@@ -31,7 +31,7 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _totalAmountController = TextEditingController();
   final _numberOfPeopleController = TextEditingController();
-  final List<String> _results = [];
+  final List<SplitAmount> _results = [];
 
   void _calculateSplit() {
     if (_formKey.currentState!.validate()) {
@@ -45,10 +45,12 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
       setState(() {
         _results.clear();
         for (int i = 0; i < numberOfPeople - 1; i++) {
-          _results.add('R\$ ${roundedSplitAmount.toStringAsFixed(2)}');
+          _results.add(SplitAmount(
+              'R\$ ${roundedSplitAmount.toStringAsFixed(2)}', false));
         }
-        _results
-            .add('R\$ ${(roundedSplitAmount + adjustment).toStringAsFixed(2)}');
+        _results.add(SplitAmount(
+            'R\$ ${(roundedSplitAmount + adjustment).toStringAsFixed(2)}',
+            false));
       });
     }
   }
@@ -109,9 +111,22 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
                   ),
                   itemCount: _results.length,
                   itemBuilder: (context, index) {
-                    return Card(
-                      child: Center(
-                        child: Text(_results[index]),
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _results[index].isPaid = !_results[index].isPaid;
+                        });
+                      },
+                      child: Card(
+                        color: _results[index].isPaid
+                            ? const Color.fromARGB(255, 1, 255, 1)
+                            : Colors.red.shade200,
+                        child: Center(
+                          child: Text(
+                            _results[index].amount,
+                            style: const TextStyle(fontSize: 30),
+                          ),
+                        ),
                       ),
                     );
                   },
@@ -123,4 +138,11 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
       ),
     );
   }
+}
+
+class SplitAmount {
+  final String amount;
+  bool isPaid;
+
+  SplitAmount(this.amount, this.isPaid);
 }
