@@ -31,15 +31,23 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _totalAmountController = TextEditingController();
   final _numberOfPeopleController = TextEditingController();
-  String _result = '';
+  final List<String> _results = [];
 
   void _calculateSplit() {
     if (_formKey.currentState!.validate()) {
       double totalAmount = double.parse(_totalAmountController.text);
       int numberOfPeople = int.parse(_numberOfPeopleController.text);
       double splitAmount = totalAmount / numberOfPeople;
+      double roundedSplitAmount = (splitAmount * 100).round() / 100;
+      double totalRounded = roundedSplitAmount * numberOfPeople;
+      double adjustment = totalAmount - totalRounded;
+
       setState(() {
-        _result = 'Cada pessoa deveria pagar: \$${splitAmount.toStringAsFixed(2)}';
+        _results.clear();
+        for (int i = 0; i < numberOfPeople - 1; i++) {
+          _results.add('R\$ ${roundedSplitAmount.toStringAsFixed(2)}');
+        }
+        _results.add('R\$ ${(roundedSplitAmount + adjustment).toStringAsFixed(2)}');
       });
     }
   }
@@ -91,9 +99,15 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
                 child: const Text('Calcular'),
               ),
               const SizedBox(height: 20),
-              Text(
-                _result,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold,),
+             Expanded(
+                child: ListView.builder(
+                  itemCount: _results.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(_results[index]),
+                    );
+                  },
+                ),
               ),
             ],
           ),
