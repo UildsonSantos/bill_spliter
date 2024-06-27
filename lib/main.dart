@@ -31,35 +31,17 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _totalAmountController = TextEditingController();
   final _numberOfPeopleController = TextEditingController();
-  final _totalAmountFocusNode = FocusNode();
-  final _numberOfPeopleFocusNode = FocusNode();
   final List<SplitAmount> _results = [];
   int totalAmount = 0;
   int numberOfPeople = 0;
   double splitAmount = 0.0;
 
   @override
-  void initState() {
-    super.initState();
-    _totalAmountFocusNode.addListener(_onFocusChange);
-    _numberOfPeopleFocusNode.addListener(_onFocusChange);
-  }
-
-  @override
   void dispose() {
     _totalAmountController.dispose();
     _numberOfPeopleController.dispose();
-    _totalAmountFocusNode.removeListener(_onFocusChange);
-    _numberOfPeopleFocusNode.removeListener(_onFocusChange);
-    _totalAmountFocusNode.dispose();
-    _numberOfPeopleFocusNode.dispose();
-    super.dispose();
-  }
 
-  void _onFocusChange() {
-    if (!_totalAmountFocusNode.hasFocus && !_numberOfPeopleFocusNode.hasFocus) {
-      _calculateSplit();
-    }
+    super.dispose();
   }
 
   void _calculateSplit() {
@@ -100,10 +82,9 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
       return 'Por favor, digite o número de participantes';
     }
 
-
     final regex = RegExp(r'^([1-9][0-9]*\.[0-9]+|0\.[1-9][0-9]*)$');
     if (!regex.hasMatch(splitAmount.toString())) {
-      return 'Desculpe, esta conta pode ser dividada por no Máximo ${totalAmount * 10} de participantes';
+      return 'Desculpe, esta conta pode ser dividada por no máximo ${totalAmount * 10} participantes';
     }
     return null;
   }
@@ -123,7 +104,6 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -137,10 +117,8 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
           child: Column(
             children: <Widget>[
               TextFormField(
-                onTap: _clearGrid,
                 onChanged: onChangeTextFormField,
                 controller: _totalAmountController,
-                focusNode: _totalAmountFocusNode,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: 'Valor total da conta',
@@ -158,10 +136,9 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
               ),
               const SizedBox(height: 20),
               TextFormField(
-                  onTap: _clearGrid,
+                  onTap: () => _numberOfPeopleController.clear(),
                   onChanged: onChangeTextFormField,
                   controller: _numberOfPeopleController,
-                  focusNode: _numberOfPeopleFocusNode,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: 'Número de participantes',
@@ -175,8 +152,8 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
               Expanded(
                 child: _results.isEmpty
                     ? const Center(
-                        child: Text(
-                            'Por favor, insira valores e toque fora dos campos de entrada.'))
+                        child:
+                            Text('Por favor, digite os valores nos campos acima!'))
                     : GridView.builder(
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
