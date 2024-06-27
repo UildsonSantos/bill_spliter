@@ -47,7 +47,8 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
         for (int i = 0; i < numberOfPeople - 1; i++) {
           _results.add('R\$ ${roundedSplitAmount.toStringAsFixed(2)}');
         }
-        _results.add('R\$ ${(roundedSplitAmount + adjustment).toStringAsFixed(2)}');
+        _results
+            .add('R\$ ${(roundedSplitAmount + adjustment).toStringAsFixed(2)}');
       });
     }
   }
@@ -85,7 +86,8 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
               TextFormField(
                 controller: _numberOfPeopleController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Número de pessoas'),
+                decoration:
+                    const InputDecoration(labelText: 'Número de pessoas'),
                 validator: (value) {
                   if (value!.isEmpty) {
                     return 'Por favor insira o número de pessoas';
@@ -99,12 +101,18 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
                 child: const Text('Calcular'),
               ),
               const SizedBox(height: 20),
-             Expanded(
-                child: ListView.builder(
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 2,
+                  ),
                   itemCount: _results.length,
                   itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(_results[index]),
+                    return Card(
+                      child: Center(
+                        child: Text(_results[index]),
+                      ),
                     );
                   },
                 ),
