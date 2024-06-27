@@ -82,7 +82,13 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
               TextFormField(
                 controller: _totalAmountController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Valor total da conta'),
+                decoration: InputDecoration(
+                  labelText: 'Valor total da conta',
+                  prefixIcon: const Icon(Icons.attach_money),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
                 validator: (value) {
                   if (value!.isEmpty) {
                     return 'Por favor, digite o valor total da conta.';
@@ -90,11 +96,17 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _numberOfPeopleController,
                 keyboardType: TextInputType.number,
-                decoration:
-                    const InputDecoration(labelText: 'Número de participantes'),
+                decoration: InputDecoration(
+                  labelText: 'Número de participantes',
+                  prefixIcon: const Icon(Icons.people),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
                 validator: (value) {
                   if (value!.isEmpty) {
                     return 'Por favor, digite o número de participantes';
@@ -105,7 +117,16 @@ class BillSplitterScreenState extends State<BillSplitterScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _calculateSplit,
-                child: const Text('Calcular'),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.blue,
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                ),
+                child: const Text('Calculate'),
               ),
               const SizedBox(height: 20),
               Expanded(
