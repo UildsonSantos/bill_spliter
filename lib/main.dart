@@ -18,6 +18,7 @@ class BillSplitterApp extends StatelessWidget {
       routes: {
         '/': (context) => const HomeScreen(),
         '/simple_division': (context) => const SimpleDivisionScreen(),
+        '/custom_division': (context) => const CustomDivisionScreen(),
       },
     );
   }

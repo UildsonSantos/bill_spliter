@@ -21,7 +21,9 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                 Navigator.pushNamed(context, '/custom_division');
+              },
               child: const Text('Divisão Personalizada'),
             ),
           ],
