@@ -1,7 +1,7 @@
 class SplitAmount {
-  final String amount;
+  String amount;
   bool isPaid;
-  final bool isLast;
+  bool isLast;
 
   SplitAmount(this.amount, this.isPaid, this.isLast);
 }

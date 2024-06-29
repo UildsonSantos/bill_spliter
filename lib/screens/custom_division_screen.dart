@@ -15,6 +15,7 @@ class _CustomDivisionScreenState extends State<CustomDivisionScreen> {
   final _numberOfPeopleController = TextEditingController();
   String? _numberOfPeopleErrorText;
   final List<SplitAmount> _results = [];
+  final List<double> _updatedAmounts = [];
   int totalAmount = 0;
   int numberOfPeople = 0;
   double splitAmount = 0.0;
@@ -38,12 +39,14 @@ class _CustomDivisionScreenState extends State<CustomDivisionScreen> {
 
       setState(() {
         _results.clear();
+        _updatedAmounts.clear();
         for (int i = 0; i < numberOfPeople - 1; i++) {
           _results.add(SplitAmount(
             'R\$ ${roundedSplitAmount.toStringAsFixed(2)}',
             false,
             false,
           ));
+          _updatedAmounts.add(roundedSplitAmount);
         }
         _results.add(SplitAmount(
           'R\$ ${adjustment.toStringAsFixed(2)}',
@@ -51,6 +54,7 @@ class _CustomDivisionScreenState extends State<CustomDivisionScreen> {
           adjustment.toStringAsFixed(2) !=
               roundedSplitAmount.toStringAsFixed(2),
         ));
+        _updatedAmounts.add(adjustment);
       });
     }
   }
@@ -91,6 +95,7 @@ class _CustomDivisionScreenState extends State<CustomDivisionScreen> {
     if (_results.isNotEmpty) {
       setState(() {
         _results.clear();
+        _updatedAmounts.clear();
       });
     }
   }
@@ -162,32 +167,62 @@ class _CustomDivisionScreenState extends State<CustomDivisionScreen> {
                     : ListView.builder(
                         itemCount: _results.length,
                         itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _results[index].isPaid =
-                                    !_results[index].isPaid;
-                              });
-                            },
-                            child: Card(
-                              color: _results[index].isPaid
-                                  ? const Color.fromARGB(255, 1, 255, 1)
-                                  : (_results[index].isLast
-                                      ? Colors.orange[200]
-                                      : Colors.red[200]),
-                              child: Center(
-                                child: Text(
-                                  _results[index].amount,
-                                  style: const TextStyle(fontSize: 30),
-                                ),
-                              ),
-                            ),
-                          );
+                          return _buildListItem(index);
                         },
                       ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListItem(int index) {
+    final originalAmount =
+        double.parse(_results[index].amount.replaceAll('R\$ ', ''));
+    final textController = TextEditingController();
+
+    return Card(
+      color: _results[index].isPaid
+          ? const Color.fromARGB(255, 1, 255, 1)
+          : (_results[index].isLast ? Colors.orange[200] : Colors.red[200]),
+      child: ListTile(
+        title: Row(
+          children: [
+            Text(
+              _results[index].amount,
+              style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade900),
+            ),
+            const SizedBox(width: 30),
+            Expanded(
+              child: TextFormField(
+                controller: textController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Valor adicional',
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    if (value.isNotEmpty) {
+                      var addedValue = double.parse(value);
+                      _updatedAmounts[index] = originalAmount + addedValue;
+                    } else {
+                      _updatedAmounts[index] = originalAmount;
+                    }
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'R\$ ${_updatedAmounts[index].toStringAsFixed(2)}',
+              style: const TextStyle(fontSize: 20),
+            ),
+          ],
         ),
       ),
     );
