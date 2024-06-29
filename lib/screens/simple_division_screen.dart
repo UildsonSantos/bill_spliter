@@ -58,15 +58,13 @@ class _SimpleDivisionScreenState extends State<SimpleDivisionScreen> {
   String? _validateSplitAmount(String? value) {
     totalAmount = int.parse(_totalAmountController.text);
     numberOfPeople = int.parse(_numberOfPeopleController.text);
-    splitAmount = totalAmount / numberOfPeople;
 
     if (value == null || value.isEmpty) {
       return 'Por favor, digite o número de participantes';
     }
 
-    final regex = RegExp(r'^([1-9][0-9]*\.[0-9]+|0\.[1-9][0-9]*)$');
-    if (!regex.hasMatch(splitAmount.toString())) {
-      return 'Desculpe, esta conta pode ser dividada por no máximo ${totalAmount * 10} participantes';
+    if (numberOfPeople > totalAmount) {
+      return 'Desculpe, esta conta pode ser dividada por no máximo $totalAmount participantes';
     }
     return null;
   }
@@ -102,6 +100,7 @@ class _SimpleDivisionScreenState extends State<SimpleDivisionScreen> {
                 onChanged: onChangeTextFormField,
                 controller: _totalAmountController,
                 keyboardType: TextInputType.number,
+                maxLength: 6,
                 decoration: InputDecoration(
                   labelText: 'Valor total da conta',
                   prefixIcon: const Icon(Icons.attach_money),
@@ -113,6 +112,7 @@ class _SimpleDivisionScreenState extends State<SimpleDivisionScreen> {
                   if (value!.isEmpty) {
                     return 'Por favor, digite o valor total da conta.';
                   }
+
                   return null;
                 },
               ),
@@ -122,6 +122,7 @@ class _SimpleDivisionScreenState extends State<SimpleDivisionScreen> {
                   onChanged: onChangeTextFormField,
                   controller: _numberOfPeopleController,
                   keyboardType: TextInputType.number,
+                  maxLength: totalAmount.toString().length,
                   decoration: InputDecoration(
                     labelText: 'Número de participantes',
                     prefixIcon: const Icon(Icons.people),
@@ -137,9 +138,8 @@ class _SimpleDivisionScreenState extends State<SimpleDivisionScreen> {
                         child: Text(
                             'Por favor, digite os valores nos campos acima!'))
                     : GridView.builder(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: splitAmount < 1000 ? 3 : 2,
                           childAspectRatio: 2,
                         ),
                         itemCount: _results.length,
