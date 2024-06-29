@@ -13,6 +13,7 @@ class _SimpleDivisionScreenState extends State<SimpleDivisionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _totalAmountController = TextEditingController();
   final _numberOfPeopleController = TextEditingController();
+  String? _numberOfPeopleErrorText;
   final List<SplitAmount> _results = [];
   int totalAmount = 0;
   int numberOfPeople = 0;
@@ -22,7 +23,6 @@ class _SimpleDivisionScreenState extends State<SimpleDivisionScreen> {
   void dispose() {
     _totalAmountController.dispose();
     _numberOfPeopleController.dispose();
-
     super.dispose();
   }
 
@@ -35,6 +35,7 @@ class _SimpleDivisionScreenState extends State<SimpleDivisionScreen> {
       double roundedSplitAmount = (splitAmount * 100).round() / 100;
       double adjustment =
           totalAmount - (roundedSplitAmount * (numberOfPeople - 1));
+
       setState(() {
         _results.clear();
         for (int i = 0; i < numberOfPeople - 1; i++) {
@@ -47,25 +48,42 @@ class _SimpleDivisionScreenState extends State<SimpleDivisionScreen> {
         _results.add(SplitAmount(
           'R\$ ${adjustment.toStringAsFixed(2)}',
           false,
-          adjustment.toStringAsFixed(2) == roundedSplitAmount.toStringAsFixed(2)
-              ? false
-              : true,
+          adjustment.toStringAsFixed(2) !=
+              roundedSplitAmount.toStringAsFixed(2),
         ));
       });
     }
   }
 
-  String? _validateSplitAmount(String? value) {
+  String? _validateTotalAmount(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, digite o valor total da conta.';
+    }
+    return null;
+  }
+
+  String? _validateNumberOfPeople(String? value) {
     totalAmount = int.parse(_totalAmountController.text);
     numberOfPeople = int.parse(_numberOfPeopleController.text);
-
     if (value == null || value.isEmpty) {
-      return 'Por favor, digite o número de participantes';
+      setState(() {
+        _numberOfPeopleErrorText =
+            'Por favor, digite o número de participantes';
+      });
+      return null;
     }
 
     if (numberOfPeople > totalAmount) {
-      return 'Desculpe, esta conta pode ser dividada por no máximo $totalAmount participantes';
+      setState(() {
+        _numberOfPeopleErrorText =
+            'Desculpe, esta conta pode ser dividida por no máximo $totalAmount participantes';
+      });
+      return null;
     }
+
+    setState(() {
+      _numberOfPeopleErrorText = null;
+    });
     return null;
   }
 
@@ -77,18 +95,26 @@ class _SimpleDivisionScreenState extends State<SimpleDivisionScreen> {
     }
   }
 
-  void onChangeTextFormField(String value) {
+  void _onChangeTextFormField(String value) {
     _clearGrid();
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && _numberOfPeopleErrorText == null) {
       _calculateSplit();
     }
+  }
+
+  void _clearTextFormFieldNumberOfPeople() {
+    _numberOfPeopleController.clear();
+    _clearGrid();
+    setState(() {
+      _numberOfPeopleErrorText = null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Divisor de contas'),
+        title: const Text('Divisão Simples'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -97,7 +123,7 @@ class _SimpleDivisionScreenState extends State<SimpleDivisionScreen> {
           child: Column(
             children: <Widget>[
               TextFormField(
-                onChanged: onChangeTextFormField,
+                onChanged: _onChangeTextFormField,
                 controller: _totalAmountController,
                 keyboardType: TextInputType.number,
                 maxLength: 6,
@@ -108,35 +134,31 @@ class _SimpleDivisionScreenState extends State<SimpleDivisionScreen> {
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                 ),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Por favor, digite o valor total da conta.';
-                  }
-
-                  return null;
-                },
+                validator: _validateTotalAmount,
               ),
               const SizedBox(height: 20),
               TextFormField(
-                  onTap: () => _numberOfPeopleController.clear(),
-                  onChanged: onChangeTextFormField,
-                  controller: _numberOfPeopleController,
-                  keyboardType: TextInputType.number,
-                  maxLength: totalAmount.toString().length,
-                  decoration: InputDecoration(
-                    labelText: 'Número de participantes',
-                    prefixIcon: const Icon(Icons.people),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
+                onTap: _clearTextFormFieldNumberOfPeople,
+                onChanged: _onChangeTextFormField,
+                controller: _numberOfPeopleController,
+                keyboardType: TextInputType.number,
+                maxLength: totalAmount.toString().length,
+                decoration: InputDecoration(
+                  labelText: 'Número de participantes',
+                  prefixIcon: const Icon(Icons.people),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
-                  validator: _validateSplitAmount),
+                  errorText: _numberOfPeopleErrorText,
+                ),
+                validator: _validateNumberOfPeople,
+              ),
               const SizedBox(height: 20),
               Expanded(
                 child: _results.isEmpty
                     ? const Center(
                         child: Text(
-                            'Por favor, digite os valores nos campos acima!'))
+                            'Por favor, digite os valores válidos nos campos acima!'))
                     : GridView.builder(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: splitAmount < 1000 ? 3 : 2,
