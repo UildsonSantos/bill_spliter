@@ -15,7 +15,7 @@ class _CustomDivisionScreenState extends State<CustomDivisionScreen> {
   final _numberOfPeopleController = TextEditingController();
   String? _numberOfPeopleErrorText;
   final List<SplitAmount> _results = [];
-  final List<double> _updatedAmounts = [];
+  final List<ValueNotifier<double>> _additionalValues = [];
   int totalAmount = 0;
   int numberOfPeople = 0;
   double splitAmount = 0.0;
@@ -24,6 +24,9 @@ class _CustomDivisionScreenState extends State<CustomDivisionScreen> {
   void dispose() {
     _totalAmountController.dispose();
     _numberOfPeopleController.dispose();
+    for (var notifier in _additionalValues) {
+      notifier.dispose();
+    }
     super.dispose();
   }
 
@@ -39,14 +42,14 @@ class _CustomDivisionScreenState extends State<CustomDivisionScreen> {
 
       setState(() {
         _results.clear();
-        _updatedAmounts.clear();
+        _additionalValues.clear();
         for (int i = 0; i < numberOfPeople - 1; i++) {
           _results.add(SplitAmount(
             'R\$ ${roundedSplitAmount.toStringAsFixed(2)}',
             false,
             false,
           ));
-          _updatedAmounts.add(roundedSplitAmount);
+          _additionalValues.add(ValueNotifier(0.0));
         }
         _results.add(SplitAmount(
           'R\$ ${adjustment.toStringAsFixed(2)}',
@@ -54,7 +57,7 @@ class _CustomDivisionScreenState extends State<CustomDivisionScreen> {
           adjustment.toStringAsFixed(2) !=
               roundedSplitAmount.toStringAsFixed(2),
         ));
-        _updatedAmounts.add(adjustment);
+        _additionalValues.add(ValueNotifier(0.0));
       });
     }
   }
@@ -95,7 +98,7 @@ class _CustomDivisionScreenState extends State<CustomDivisionScreen> {
     if (_results.isNotEmpty) {
       setState(() {
         _results.clear();
-        _updatedAmounts.clear();
+        _additionalValues.clear();
       });
     }
   }
@@ -182,6 +185,7 @@ class _CustomDivisionScreenState extends State<CustomDivisionScreen> {
     final originalAmount =
         double.parse(_results[index].amount.replaceAll('R\$ ', ''));
     final textController = TextEditingController();
+    final additionalValueNotifier = _additionalValues[index];
 
     return Card(
       color: _results[index].isPaid
@@ -199,28 +203,36 @@ class _CustomDivisionScreenState extends State<CustomDivisionScreen> {
             ),
             const SizedBox(width: 30),
             Expanded(
-              child: TextFormField(
-                controller: textController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Valor adicional',
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    if (value.isNotEmpty) {
-                      var addedValue = double.parse(value);
-                      _updatedAmounts[index] = originalAmount + addedValue;
-                    } else {
-                      _updatedAmounts[index] = originalAmount;
-                    }
-                  });
+              child: ValueListenableBuilder<double>(
+                valueListenable: additionalValueNotifier,
+                builder: (context, additionalValue, child) {
+                  return TextFormField(
+                    controller: textController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Valor adicional',
+                    ),
+                    onChanged: (value) {
+                      if (value.isNotEmpty) {
+                        var addedValue = double.parse(value);
+                        additionalValueNotifier.value = addedValue;
+                      } else {
+                        additionalValueNotifier.value = 0.0;
+                      }
+                    },
+                  );
                 },
               ),
             ),
             const SizedBox(width: 10),
-            Text(
-              'R\$ ${_updatedAmounts[index].toStringAsFixed(2)}',
-              style: const TextStyle(fontSize: 20),
+            ValueListenableBuilder<double>(
+              valueListenable: additionalValueNotifier,
+              builder: (context, additionalValue, child) {
+                return Text(
+                  'R\$ ${(originalAmount + additionalValue).toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 20),
+                );
+              },
             ),
           ],
         ),
